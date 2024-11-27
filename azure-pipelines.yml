@@ -1,5 +1,5 @@
 trigger:
-  - none
+  - main
 
 pool:
   vmImage: 'windows-latest'
@@ -16,8 +16,8 @@ steps:
   - script: dotnet test
     displayName: 'Run unit tests'
 
-  # Create a .zip package for deployment using PowerShell
-  - script: |
+  # Use PowerShell to create deployment zip
+  - powershell: |
       New-Item -Path $(Build.ArtifactStagingDirectory)\app -ItemType Directory -Force
       Copy-Item -Path "$(System.DefaultWorkingDirectory)\*" -Recurse -Destination $(Build.ArtifactStagingDirectory)\app
       Compress-Archive -Path $(Build.ArtifactStagingDirectory)\app\* -DestinationPath $(Build.ArtifactStagingDirectory)\FlipsoEcommerceApp.zip
