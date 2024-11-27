@@ -1,0 +1,22 @@
+trigger:
+  - main
+
+pool:
+  vmImage: 'windows-latest'
+
+steps:
+  - task: UseDotNet@2
+    inputs:
+      packageType: 'sdk'
+      version: '9.0.x'  # Install .NET 9.0
+
+  - script: dotnet build
+    displayName: 'Build the project'
+
+  - script: dotnet test
+    displayName: 'Run unit tests'
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      pathToPublish: '$(System.DefaultWorkingDirectory)'
+      artifactName: 'drop'
