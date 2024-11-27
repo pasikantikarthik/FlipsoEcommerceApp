@@ -1,39 +1,94 @@
 trigger:
-  - main
+- main
 
 pool:
-  vmImage: 'windows-latest'
+  vmImage: 'windows-latest'  # Use 'ubuntu-latest' for Linux-based deployments
 
-steps:
-  - task: UseDotNet@2
-    inputs:
-      packageType: 'sdk'
-      version: '9.0.x'  # Install .NET 9.0
+variables:
+  # Replace with your desired Node.js version, or use other runtime-specific variables
+  WEBSITE_NODE_DEFAULT_VERSION: '16.14.0'
+  WEBSITE_RUN_FROM_PACKAGE: '1'
 
-  - script: dotnet build
-    displayName: 'Build the project'
+stages:
+- stage: Build
+  displayName: 'Build Stage'
+  jobs:
+  - job: BuildJob
+    displayName: 'Build and Package'
+    steps:
+    - task: UseNode@1
+      inputs:
+        version: '16.x'
+        checkLatest: true
 
-  - script: dotnet test
-    displayName: 'Run unit tests'
+    - task: npm@1
+      displayName: 'Install Dependencies'
+      inputs:
+        command: 'install'
 
-  # Use PowerShell to create deployment zip
-  - powershell: |
-      New-Item -Path $(Build.ArtifactStagingDirectory)\app -ItemType Directory -Force
-      Copy-Item -Path "$(System.DefaultWorkingDirectory)\*" -Recurse -Destination $(Build.ArtifactStagingDirectory)\app
-      Compress-Archive -Path $(Build.ArtifactStagingDirectory)\app\* -DestinationPath $(Build.ArtifactStagingDirectory)\FlipsoEcommerceApp.zip
-    displayName: 'Create deployment zip'
+    - script: |
+        npm run build
+      displayName: 'Build Application'
 
-  # Publish the zip package
-  - task: PublishBuildArtifacts@1
-    inputs:
-      pathToPublish: '$(Build.ArtifactStagingDirectory)\FlipsoEcommerceApp.zip'
-      artifactName: 'drop'
+    - task: ArchiveFiles@2
+      inputs:
+        rootFolderOrFile: '$(System.DefaultWorkingDirectory)/build'
+        includeRootFolder: false
+        archiveType: 'zip'
+        archiveFile: '$(Build.ArtifactStagingDirectory)/artifact.zip'
+        replaceExistingArchive: true
 
-  # Deploy to Azure Web App
-  - task: AzureRmWebAppDeployment@4
-    inputs:
-      ConnectionType: 'AzureRM'
-      azureSubscription: 'Pay-As-You-Go(9a668e8f-ad3f-48a1-94cb-fbcf50b35167)'
-      appType: 'webApp'
-      WebAppName: 'FlipsoEcommerceApp'
-      package: '$(Build.ArtifactStagingDirectory)\FlipsoEcommerceApp.zip'
+    - publish: $(Build.ArtifactStagingDirectory)/artifact.zip
+      artifact: drop
+
+- stage: Deploy
+  displayName: 'Deploy Stage'
+  dependsOn: Build
+  jobs:
+  - deployment: DeployJob
+    environment: 'Production'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - download: current
+            artifact: drop
+
+          # Deploy the package to Azure Web App
+          - task: AzureWebApp@1
+            displayName: 'Deploy to Azure Web App'
+            inputs:
+              azureSubscription: 'Pay-As-You-Go(9a668e8f-ad3f-48a1-94cb-fbcf50b35167)'
+              appType: 'webApp'
+              appName: 'FlipsoEcommerceApp'
+              package: '$(Pipeline.Workspace)/drop/artifact.zip'
+              deploymentMethod: 'auto'
+
+          # Update runtime settings (Node.js as an example)
+          - task: AzureAppServiceSettings@1
+            displayName: 'Configure App Settings'
+            inputs:
+              azureSubscription: 'Pay-As-You-Go(9a668e8f-ad3f-48a1-94cb-fbcf50b35167)'
+              appName: 'FlipsoEcommerceApp'
+              resourceGroupName: 'FlipsoEcommerceApp_group'
+              appSettings: |
+                -WEBSITE_NODE_DEFAULT_VERSION=$(WEBSITE_NODE_DEFAULT_VERSION)
+                -WEBSITE_RUN_FROM_PACKAGE=$(WEBSITE_RUN_FROM_PACKAGE)
+
+          # Set Default Document for App
+          - task: AzureCLI@2
+            displayName: 'Set Default Document'
+            inputs:
+              azureSubscription: 'Pay-As-You-Go(9a668e8f-ad3f-48a1-94cb-fbcf50b35167)'
+              scriptType: 'ps'
+              scriptLocation: 'inlineScript'
+              inlineScript: 'az webapp config set --resource-group FlipsoEcommerceApp_group --name FlipsoEcommerceApp --default-documents index.html'
+
+          # Log Web App configuration for verification
+          - task: AzureCLI@2
+            displayName: 'Log Web App Configuration'
+            inputs:
+              azureSubscription: 'Pay-As-You-Go(9a668e8f-ad3f-48a1-94cb-fbcf50b35167)'
+              scriptType: 'bash'
+              scriptLocation: 'inlineScript'
+              inlineScript: 'az webapp config show --resource-group FlipsoEcommerceApp_group --name FlipsoEcommerceApp'
