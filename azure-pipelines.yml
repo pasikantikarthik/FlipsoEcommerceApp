@@ -16,14 +16,25 @@ steps:
   - script: dotnet test
     displayName: 'Run unit tests'
 
+  # Create a .zip package for deployment
+  - script: |
+      mkdir $(Build.ArtifactStagingDirectory)\app
+      cp -r $(System.DefaultWorkingDirectory)\* $(Build.ArtifactStagingDirectory)\app
+      cd $(Build.ArtifactStagingDirectory)
+      zip -r FlipsoEcommerceApp.zip app/*
+    displayName: 'Create deployment zip'
+
+  # Publish the zip package
   - task: PublishBuildArtifacts@1
     inputs:
-      pathToPublish: '$(System.DefaultWorkingDirectory)'
+      pathToPublish: '$(Build.ArtifactStagingDirectory)\FlipsoEcommerceApp.zip'
       artifactName: 'drop'
+
+  # Deploy to Azure Web App
   - task: AzureRmWebAppDeployment@4
     inputs:
       ConnectionType: 'AzureRM'
       azureSubscription: 'Pay-As-You-Go(9a668e8f-ad3f-48a1-94cb-fbcf50b35167)'
       appType: 'webApp'
       WebAppName: 'FlipsoEcommerceApp'
-      packageForLinux: '$(System.DefaultWorkingDirectory)/**/*.zip'
+      package: '$(Build.ArtifactStagingDirectory)\FlipsoEcommerceApp.zip'
