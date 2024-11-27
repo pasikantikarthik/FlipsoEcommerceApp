@@ -95,3 +95,4 @@ C:\Users\Lenovo\FlipsoEcommerceApp\obj\Debug\net9.0\refint\FlipsoEcommerceApp.dl
 C:\Users\Lenovo\FlipsoEcommerceApp\obj\Debug\net9.0\FlipsoEcommerceApp.pdb
 C:\Users\Lenovo\FlipsoEcommerceApp\obj\Debug\net9.0\FlipsoEcommerceApp.genruntimeconfig.cache
 C:\Users\Lenovo\FlipsoEcommerceApp\obj\Debug\net9.0\ref\FlipsoEcommerceApp.dll
+C:\Users\Lenovo\FlipsoEcommerceApp\obj\Debug\net9.0\FlipsoEcommerceApp.sourcelink.json
