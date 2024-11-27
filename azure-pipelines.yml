@@ -16,12 +16,11 @@ steps:
   - script: dotnet test
     displayName: 'Run unit tests'
 
-  # Create a .zip package for deployment
+  # Create a .zip package for deployment using PowerShell
   - script: |
-      mkdir $(Build.ArtifactStagingDirectory)\app
-      cp -r $(System.DefaultWorkingDirectory)\* $(Build.ArtifactStagingDirectory)\app
-      cd $(Build.ArtifactStagingDirectory)
-      zip -r FlipsoEcommerceApp.zip app/*
+      New-Item -Path $(Build.ArtifactStagingDirectory)\app -ItemType Directory -Force
+      Copy-Item -Path "$(System.DefaultWorkingDirectory)\*" -Recurse -Destination $(Build.ArtifactStagingDirectory)\app
+      Compress-Archive -Path $(Build.ArtifactStagingDirectory)\app\* -DestinationPath $(Build.ArtifactStagingDirectory)\FlipsoEcommerceApp.zip
     displayName: 'Create deployment zip'
 
   # Publish the zip package
