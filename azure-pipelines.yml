@@ -27,10 +27,16 @@ steps:
       pathToPublish: '$(Build.ArtifactStagingDirectory)\FlipsoEcommerceApp.zip'
       artifactName: 'drop'
 
+  - task: DownloadBuildArtifacts@0
+    inputs:
+      buildType: 'current'
+      artifactName: 'drop'
+      downloadPath: '$(Build.ArtifactStagingDirectory)'
+
   - task: AzureRmWebAppDeployment@4
     inputs:
       ConnectionType: 'AzureRM'
       azureSubscription: 'Pay-As-You-Go(9a668e8f-ad3f-48a1-94cb-fbcf50b35167)'
       appType: 'webApp'
       WebAppName: 'flipsoecommerceapp'
-      packageForLinux: '$(System.DefaultWorkingDirectory)/**/*.zip'
+      package: '$(Build.ArtifactStagingDirectory)/drop/FlipsoEcommerceApp.zip'
