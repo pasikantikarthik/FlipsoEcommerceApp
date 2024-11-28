@@ -1,5 +1,5 @@
 trigger:
-  - main
+  - none
 
 pool:
   vmImage: 'windows-latest'
@@ -47,10 +47,13 @@ steps:
       WebAppName: 'flipsoecommerceapp'
       package: '$(Build.ArtifactStagingDirectory)/drop/FlipsoEcommerceApp.zip'
 
-  - powershell: |
-      $webAppName = 'flipsoecommerceapp'
-      $resourceGroupName = 'your-resource-group'
-      az webapp log config --name $webAppName --resource-group $resourceGroupName --detailed-error-messages true
+  - task: AzureCLI@2
+    inputs:
+      azureSubscription: 'Pay-As-You-Go(9a668e8f-ad3f-48a1-94cb-fbcf50b35167)'
+      scriptType: 'ps'
+      scriptLocation: 'inlineScript'
+      inlineScript: |
+        az webapp log config --name flipsoecommerceapp --resource-group your-resource-group --detailed-error-messages true
     displayName: 'Enable Detailed Error Messages'
 
   - task: AzureAppServiceSettings@1
