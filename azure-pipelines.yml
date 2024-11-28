@@ -10,21 +10,26 @@ steps:
       packageType: 'sdk'
       version: '9.0.x'  # Install .NET 9.0
 
-  - script: dotnet build
-    displayName: 'Build the project'
+  - script: dotnet restore
+    displayName: 'Restore dependencies'
 
-  - script: dotnet test
-    displayName: 'Run unit tests'
+  - task: DotNetCoreCLI@2
+    inputs:
+      command: 'publish'
+      arguments: '--configuration Release -o $(Build.ArtifactStagingDirectory)/publish'
 
-  - powershell: |
-      New-Item -Path $(Build.ArtifactStagingDirectory)\app -ItemType Directory -Force
-      Copy-Item -Path "$(System.DefaultWorkingDirectory)\*" -Recurse -Destination $(Build.ArtifactStagingDirectory)\app
-      Compress-Archive -Path $(Build.ArtifactStagingDirectory)\app\* -DestinationPath $(Build.ArtifactStagingDirectory)\FlipsoEcommerceApp.zip
-    displayName: 'Create deployment zip'
+  - task: ArchiveFiles@2
+    displayName: 'Archive files'
+    inputs:
+      rootFolderOrFile: '$(Build.ArtifactStagingDirectory)/publish'
+      includeRootFolder: false
+      archiveType: 'zip'
+      archiveFile: '$(Build.ArtifactStagingDirectory)/FlipsoEcommerceApp.zip'
+      replaceExistingArchive: true
 
   - task: PublishBuildArtifacts@1
     inputs:
-      pathToPublish: '$(Build.ArtifactStagingDirectory)\FlipsoEcommerceApp.zip'
+      pathToPublish: '$(Build.ArtifactStagingDirectory)/FlipsoEcommerceApp.zip'
       artifactName: 'drop'
 
   - task: DownloadBuildArtifacts@0
