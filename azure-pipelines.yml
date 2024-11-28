@@ -48,15 +48,9 @@ steps:
       package: '$(Build.ArtifactStagingDirectory)/drop/FlipsoEcommerceApp.zip'
 
   - powershell: |
-      # Enable detailed error messages in App Service
       $webAppName = 'flipsoecommerceapp'
       $resourceGroupName = 'your-resource-group'
-      $appSettings = @{
-          "webAppName" = $webAppName
-          "resourceGroupName" = $resourceGroupName
-          "detailedErrorMessagesEnabled" = "true"
-      }
-      $appSettings | ForEach-Object { az webapp config set --name $_.webAppName --resource-group $_.resourceGroupName --detailed-error-messages $_.detailedErrorMessagesEnabled }
+      az webapp log config --name $webAppName --resource-group $resourceGroupName --detailed-error-messages true
     displayName: 'Enable Detailed Error Messages'
 
   - task: AzureAppServiceSettings@1
