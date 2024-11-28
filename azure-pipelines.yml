@@ -60,5 +60,8 @@ steps:
       azureSubscription: 'Pay-As-You-Go(9a668e8f-ad3f-48a1-94cb-fbcf50b35167)'
       resourceGroupName: 'flipsoecommerceapp'
       appName: 'flipsoecommerceapp'
-      appSettings: '-WEBSITE_RUN_FROM_PACKAGE 1'
+      appSettings: |
+        {
+          "WEBSITE_RUN_FROM_PACKAGE": "1"
+        }
     displayName: 'Set WEBSITE_RUN_FROM_PACKAGE'
