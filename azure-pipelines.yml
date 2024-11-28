@@ -1,5 +1,4 @@
-trigger:
-  - none
+trigger: none
 
 pool:
   vmImage: 'windows-latest'
@@ -53,13 +52,13 @@ steps:
       scriptType: 'ps'
       scriptLocation: 'inlineScript'
       inlineScript: |
-        az webapp log config --name flipsoecommerceapp --resource-group your-resource-group --detailed-error-messages true
+        az webapp log config --name flipsoecommerceapp --resource-group <actual-resource-group-name> --detailed-error-messages true
     displayName: 'Enable Detailed Error Messages'
 
   - task: AzureAppServiceSettings@1
     inputs:
       azureSubscription: 'Pay-As-You-Go(9a668e8f-ad3f-48a1-94cb-fbcf50b35167)'
-      resourceGroupName: 'your-resource-group'
+      resourceGroupName: '<actual-resource-group-name>'
       appName: 'flipsoecommerceapp'
       appSettings: '-WEBSITE_RUN_FROM_PACKAGE 1'
     displayName: 'Set WEBSITE_RUN_FROM_PACKAGE'
